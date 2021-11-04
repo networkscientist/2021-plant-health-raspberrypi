@@ -34,7 +34,7 @@ def dht_init():
         # Create the DHT22 object with the corresponding GPIO pin number
         dht_sensor = DHT22(config['other']['gpio_pin']) 
         # Create a CSV file with given columns names
-        with open(csv_path, 'w', newline='') as file:
+        with open(os.path.join(base_path, config['paths']['csv']), 'w', newline='') as file:
             writer = csv.writer(file, delimiter=' ') # The separator is a single space
             writer.writerow(columns) # Write the header row
             file.close()
@@ -47,11 +47,13 @@ def dht_init():
 def read_config():
     # Load the configuration values from an external file
     try:
-##        with open(os.path.join(base_path, config_path), 'r') as file:
-        with open('/home/pi/KiraPi/config/conf.yml', 'r') as file:
+        with open(os.path.join(base_path, config_path), 'r') as file:
+##        with open('/home/pi/KiraPi/config/conf.yml', 'r') as file:
             config = yaml.safe_load(file)
         return config
-    
+    except:
+        print("Config file could not be read")
+
 ## Read DHT22 measurement
 def dht_reader(dht_sensor):
     """

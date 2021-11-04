@@ -5,38 +5,53 @@ from pigpio_dht import DHT22
 import time, datetime
 import matplotlib.pyplot as plt
 import csv
+import yaml
+import os
 
 ## Initial Values
-csv_path = "/home/pi/KiraPi/output/sens.txt" # Where the measurements will be stored
+base_path = os.getcwd() #Take current working dir as base path
+config_path = 'KiraPi/config/conf.yml' # Set the config file path without the base_path
+##csv_path = "/home/pi/KiraPi/output/sens.txt" # Where the measurements will be stored
 columns=['date', 'time', 'temp_c', 'temp_f', 'humidity', 'valid'] # The columns titles
 
 ## Initialize the GPIO
-def dht_init(gpio):
+def dht_init():
     """
     Initialize the DHT22 sensor and return it
     
-    :param int gpio: The GPIO BCM pin number where the sensor is attached
+##    :param int gpio: The GPIO BCM pin number where the sensor is attached
     :return dht_sensor: The initialized dht_sensor object
     :return df: The initialized DataFrame
+    :return dict config: The config values a dictionary
     """
     try:
+        config = read_config()
         # Create pandas DataFrame
         df = pd.DataFrame(columns=columns)
         # Set the dtype of the time column to datetime64[ns] to have an interchangeable unit
         df['date'] = pd.to_datetime(df['date'])
         df['time'] = pd.to_datetime(df['time'])
         # Create the DHT22 object with the corresponding GPIO pin number
-        dht_sensor = DHT22(gpio) 
+        dht_sensor = DHT22(config['other']['gpio_pin']) 
         # Create a CSV file with given columns names
         with open(csv_path, 'w', newline='') as file:
             writer = csv.writer(file, delimiter=' ') # The separator is a single space
             writer.writerow(columns) # Write the header row
             file.close()
         print("DHT22 sensor initialized.")
-        return dht_sensor,df # Return the sensor object and the empty dataframe
+        return dht_sensor,df, config # Return the sensor object and the empty dataframe
     except:
         print("DHT22 sensor could not be initialized.")
 
+## Read external config file
+def read_config():
+    # Load the configuration values from an external file
+    try:
+##        with open(os.path.join(base_path, config_path), 'r') as file:
+        with open('/home/pi/KiraPi/config/conf.yml', 'r') as file:
+            config = yaml.safe_load(file)
+        return config
+    
 ## Read DHT22 measurement
 def dht_reader(dht_sensor):
     """
